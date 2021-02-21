@@ -28,6 +28,21 @@ func emitStructuredEvent(eventData map[string]string) {
 	log.Println(string(logMsg))
 }
 
+func getTargets() []string {
+	var targets []string
+	logData := make(map[string]string)
+	em := environmentMap()
+	for k, v := range em {
+		if strings.HasPrefix(k, "TARGET_") {
+			targets = append(targets, v)
+			logData[k] = v
+		}
+
+	}
+	emitStructuredEvent(logData)
+	return targets
+}
+
 func executeLookups(targets []string) (string, error) {
 	for _, target := range targets {
 		logData := map[string]string{"target": target}
@@ -78,9 +93,10 @@ func debugLogging(ctx context.Context, event events.CloudWatchEvent) {
 }
 
 func handleRequest(ctx context.Context, event events.CloudWatchEvent) (string, error) {
+	//TODO: add conditiponal for debug logging
 	debugLogging(ctx, event)
-	targets := []string{"rpapi.cts.imprivata.com"}
-	executeLookups(targets)
+	//TODO: give good return to handleRequest
+	executeLookups(getTargets())
 	return "FunctionCount", nil
 }
 
