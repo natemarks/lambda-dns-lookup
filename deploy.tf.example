@@ -1,0 +1,33 @@
+# Example should be modified for your purposes and copied to deploy.tf
+module "aws_lambda_monitor" {
+  source = "github.com/natemarks/tf-aws-lambda-monitor?ref=v0.0.4"
+
+  aws_account_id   = "468716396736"
+  aws_region       = "us-east-1"
+  function_name    = "lambda-dns-lookup-monitor"
+  handler_name     = "lambda-dns-lookup"
+  function_runtime = "go1.x"
+  tracing_mode     = "PassThrough"
+  source_bucket    = "com.imprivata.468716396736.us-east-1.deployment-resources"
+  source_key       = "lambda-dns-lookup-monitor/lambda-dns-lookup.zip"
+
+  custom_tags = {
+    terraform   = "true"
+    environment = "production"
+  }
+  environment_variables = {
+    DEBUG_FUNCTIONS = "false"
+    RANDOM_FAILURE  = "false"
+    LOOKUPS = jsonencode(
+      [
+        {
+          "Target" : "rpapi.cts.imprivata.com",
+          "ExpectedResponses" : 4
+        }
+      ]
+    )
+    #LOOKUPS         = "[{\"Target\": \"rpapi.cts.imprivata.com\"}, {\"ExpectedResponses\": 4}]"
+  }
+  schedule_expression      = "rate(1 minute)"
+  schedule_expression_desc = "Every minute"
+}

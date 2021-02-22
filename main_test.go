@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -13,10 +14,25 @@ import (
 	"github.com/aws/aws-lambda-go/lambdacontext"
 )
 
+var flagtests = []struct {
+	lookupEnvVar   string
+	resultContains string
+}{
+	{`[{"Target": "www.google.com", "ExpectedResponses": 1}]`,
+		"job status: success"},
+	{"[",
+		"Bad LOOKUPS value"},
+	{`[{"Target": "www.google.comzzzzjjjjj", "ExpectedResponses": 1}]`,
+		"One or more lookups failed. see logs for details"},
+	{`[{"Target": "www.google.com", "ExpectedResponses": 10}]`,
+		"Too few addresses for"},
+	{"",
+		"required LOOKUPS var is unset"},
+}
+
 func TestMain(t *testing.T) {
 	d := time.Now().Add(2500 * time.Millisecond)
 	os.Setenv("AWS_LAMBDA_FUNCTION_NAME", "cloudwatch-alert")
-	os.Setenv("TARGET_GOOGLE", "www.google.com")
 	ctx, _ := context.WithDeadline(context.Background(), d)
 	ctx = lambdacontext.NewContext(ctx, &lambdacontext.LambdaContext{
 		AwsRequestID:       "495b12a8-xmpl-4eca-8168-160484189f99",
@@ -28,14 +44,22 @@ func TestMain(t *testing.T) {
 	if err != nil {
 		t.Errorf("could not unmarshal event. details: %v", err)
 	}
-	//var inputEvent CloudWatchEvent
-	result, err := handleRequest(ctx, event)
-	if err != nil {
-		t.Log(err)
-	}
-	t.Log(result)
-	if !strings.Contains(result, "FunctionCount") {
-		t.Errorf("Output does not contain FunctionCode.")
+	for _, tt := range flagtests {
+		// set tt.lookupEnvVar to "" to test unset variable condition
+		if tt.lookupEnvVar == "" {
+			os.Unsetenv("LOOKUPS")
+		} else {
+			os.Setenv("LOOKUPS", tt.lookupEnvVar)
+		}
+		//var inputEvent CloudWatchEvent
+		result, err := handleRequest(ctx, event)
+		if err != nil {
+			t.Log(err)
+		}
+		t.Log(result)
+		if !strings.Contains(result, tt.resultContains) {
+			t.Errorf(fmt.Sprintf("Output does not contain: %s", tt.resultContains))
+		}
 	}
 }
 func ReadJSONFromFile(t *testing.T, inputFile string) []byte {

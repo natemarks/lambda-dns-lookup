@@ -1,2 +1,10 @@
 .vscode
 bin
+.venv
+# keep deployment variables out of the repo
+deploy.tf
+#  keep terraform state files out of the rep
+terraform.*
+.terraform
+
+config.json
