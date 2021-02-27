@@ -253,13 +253,8 @@ func environmentMap() map[string]string {
 
 // Called when debug logging is enable to dump context data
 func debugLogging(ctx context.Context, event events.CloudWatchEvent) {
-
-	mm := make(map[string]string)
-	//set audience
-	mm["inside_debugging_function"] = "true"
-	emitStructuredEvent(mm, 4)
 	// log event
-	eventJSON, _ := json.MarshalIndent(event, "", "  ")
+	eventJSON, _ := json.Marshal(event)
 	log.Printf("EVENT: %s", eventJSON)
 	// log environment variables
 	emitStructuredEvent(environmentMap(), 4)
@@ -293,7 +288,7 @@ func failMode() bool {
 
 // write the funciton verson on execution
 func logVersion() {
-	version := "0.1.3"
+	version := "0.1.2"
 	e := make(map[string]string)
 	e["version"] = version
 	emitStructuredEvent(e, 3)
@@ -306,10 +301,6 @@ func handleRequest(ctx context.Context, event events.CloudWatchEvent) (string, e
 	logVersion()
 	// if debug mode, log all the context info
 	if debugMode() {
-		dmmsg := make(map[string]string)
-		//set audience
-		dmmsg["debug_is_set"] = "true"
-		emitStructuredEvent(dmmsg, 4)
 		debugLogging(ctx, event)
 	}
 	// validate the LOOKUPS env var data

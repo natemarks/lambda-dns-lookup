@@ -6,5 +6,5 @@ deploy.tf
 #  keep terraform state files out of the rep
 terraform.*
 .terraform
-
+*.zip
 config.json
