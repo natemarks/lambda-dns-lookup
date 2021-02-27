@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -14,20 +15,36 @@ import (
 	"github.com/aws/aws-lambda-go/lambdacontext"
 )
 
+// table tests
 var flagtests = []struct {
 	lookupEnvVar   string
 	resultContains string
+	expectedError  error
 }{
+	// test that should succeed
+
+	// lookupEnvVar
 	{`[{"Target": "www.google.com", "ExpectedResponses": 1}]`,
-		"job status: success"},
+		// resultContains
+		"job status: success",
+		// expectedError
+		nil},
+	// malformed LOOKUP JSON
 	{"[",
-		"Bad LOOKUPS value"},
+		"Bad LOOKUPS value",
+		errors.New("unexpected end of JSON input")},
+	// bad hostname . lookup will fail
 	{`[{"Target": "www.google.comzzzzjjjjj", "ExpectedResponses": 1}]`,
-		"One or more lookups failed. see logs for details"},
-	{`[{"Target": "www.google.com", "ExpectedResponses": 10}]`,
-		"Too few addresses for"},
+		"One or more lookups failed. see logs for details",
+		errors.New("lookup www.google.comzzzzjjjjj: no such host")},
+	// not enough addresses in response
+	{`[{"Target": "www.google.com", "ExpectedResponses": 20}]`,
+		"Too few addresses for",
+		errors.New("One or more lookups failed. see logs for details")},
+	// "" triggers LOOKUPS to be unset
 	{"",
-		"required LOOKUPS var is unset"},
+		"required LOOKUPS var is unset",
+		errors.New("required LOOKUPS var is unset")},
 }
 
 func TestMain(t *testing.T) {
@@ -53,7 +70,7 @@ func TestMain(t *testing.T) {
 		}
 		//var inputEvent CloudWatchEvent
 		result, err := handleRequest(ctx, event)
-		if err != nil {
+		if err != tt.expectedError {
 			t.Log(err)
 		}
 		t.Log(result)

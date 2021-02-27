@@ -42,8 +42,6 @@ import (
 
 var client = lambda.New(session.New())
 
-var env map[string]string = environmentMap()
-
 type lookupRequest struct {
 	Target            string `json:"target"`
 	ExpectedResponses int    `json:"expectedResponses"`
@@ -57,17 +55,18 @@ type lookupResult struct {
 // handle problems as appropriate
 func lookups() ([]lookupRequest, string, error) {
 	var r []lookupRequest
-	env := environmentMap()
 	defaultJob := `[{"Target": "www.google.com", "ExpectedResponses": 1}]`
-	job, ok := env["LOOKUPS"]
-	if !ok {
+
+	lv := os.Getenv("LOOKUPS")
+	//getenv returns "" for empty AND unset
+	if lv == "" {
 		alarmBadLookupVar()
 		json.Unmarshal([]byte(defaultJob), &r)
 		msg := fmt.Sprintf("required LOOKUPS var is unset")
 		return r, msg, errors.New(msg)
 	}
 
-	if err := json.Unmarshal([]byte(job), &r); err != nil {
+	if err := json.Unmarshal([]byte(lv), &r); err != nil {
 		json.Unmarshal([]byte(defaultJob), &r)
 		msg, _ := alarmBadLookupVar()
 		return r, msg, err
@@ -277,20 +276,14 @@ func debugLogging(ctx context.Context, event events.CloudWatchEvent) {
 
 // return true if in debug mode
 func debugMode() bool {
-	debug, ok := env["DEBUG_FUNCTION"]
-	if !ok {
-		return false
-	}
-	return strings.EqualFold("true", debug)
+	res := os.Getenv("DEBUG_FUNCTION")
+	return strings.EqualFold("true", res)
 }
 
 // return true if in random fail mode
 func failMode() bool {
-	fail, ok := env["RANDOM_FAILURES"]
-	if !ok {
-		return false
-	}
-	return strings.EqualFold("true", fail)
+	res := os.Getenv("RANDOM_FAILURES")
+	return strings.EqualFold("true", res)
 }
 
 // write the funciton verson on execution
