@@ -288,7 +288,7 @@ func failMode() bool {
 
 // write the funciton verson on execution
 func logVersion() {
-	version := "0.1.0"
+	version := "0.1.1"
 	e := make(map[string]string)
 	e["version"] = version
 	emitStructuredEvent(e, 3)

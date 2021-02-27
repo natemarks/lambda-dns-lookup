@@ -1,6 +1,6 @@
 .PHONY: compile invoke
 .DEFAULT_GOAL := help
-VERSION := 0.1.0
+VERSION := 0.1.1
 COMMIT_HASH := $(shell git rev-parse --short HEAD)
 CURRENT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 MAIN_BRANCH := master
