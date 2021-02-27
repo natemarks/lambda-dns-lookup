@@ -20,7 +20,7 @@ The function is configured by injecting environment variables using terraform.
 
 NOTE:  There is a [limit](https://aws.amazon.com/premiumsupport/knowledge-center/lambda-environment-variable-size/#:~:text=The%20default%20quota%20value%20of,use%20an%20external%20data%20store.) on the total size of al environment variable data. If the test request has to exceed that, the project should be extended to get the data from parameter store
 
-**DEBUG_FUNCTION:** 'DEBUG_FUNCTION' variable enables debug logging in the lambda.  It is enabled by setting the value to 'true' The check is case-insensitive. 
+**DEBUG:** 'DEBUG' variable enables debug logging in the lambda.  It is enabled by setting the value to 'true' The check is case-insensitive. 
 
 **RANDOM_FAILURES:** 'RANDOM_FAILURES' variable causes the function to log random failures.  All of the failure modes should be covered eventually. This is important to creating the metrics correctly when the function is new OR if there are changes in AWS that force us to re-tune events and metrics.
 

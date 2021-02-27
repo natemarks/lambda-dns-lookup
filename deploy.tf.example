@@ -16,7 +16,7 @@ module "aws_lambda_monitor" {
     environment = "production"
   }
   environment_variables = {
-    DEBUG_FUNCTIONS = "false"
+    DEBUG = "false"
     RANDOM_FAILURE  = "false"
     LOOKUPS = jsonencode(
       [

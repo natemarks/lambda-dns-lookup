@@ -4,7 +4,7 @@
 // expected
 // if an nslookupfails completly, error the lambda, and log an event
 // if it succeeds but the count is wrong log an alarm event
-// turn on debug loggging with "DEBUG_FUNCTION"= "TRUE"
+// turn on debug loggging with "DEBUG"= "TRUE"
 // turn on random errors wiht "RANDOM_FAILURES" = TRUE
 // override lookup request with LOOKUPS = [valid json object]
 //ex. job = `[{"Target": "www.google.com"}, {"ExpectedResponses": 1}]`
@@ -276,7 +276,7 @@ func debugLogging(ctx context.Context, event events.CloudWatchEvent) {
 
 // return true if in debug mode
 func debugMode() bool {
-	res := os.Getenv("DEBUG_FUNCTION")
+	res := os.Getenv("DEBUG")
 	return strings.EqualFold("true", res)
 }
 
