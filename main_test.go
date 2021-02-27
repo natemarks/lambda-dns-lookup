@@ -50,6 +50,7 @@ var flagtests = []struct {
 func TestMain(t *testing.T) {
 	d := time.Now().Add(2500 * time.Millisecond)
 	os.Setenv("AWS_LAMBDA_FUNCTION_NAME", "cloudwatch-alert")
+	os.Setenv("DEBUG", "true")
 	ctx, _ := context.WithDeadline(context.Background(), d)
 	ctx = lambdacontext.NewContext(ctx, &lambdacontext.LambdaContext{
 		AwsRequestID:       "495b12a8-xmpl-4eca-8168-160484189f99",
