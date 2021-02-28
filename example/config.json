@@ -1,0 +1,4 @@
+{
+  "s3_bucket": "my.bucket.name",
+  "s3_key": "lambda-dns-lookup-monitor/lambda-dns-lookup.zip"
+}
