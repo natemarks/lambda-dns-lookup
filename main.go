@@ -75,73 +75,74 @@ func lookups() ([]lookupRequest, string, error) {
 }
 
 // called when the value of LOOKUPS can't be parsed as JSON
-// logs the correct data
-// returns proper out and error
+// audience is DEVOPS becuase they maintain the lambda config (terraform)
+// Severity is 2 because it's a blindspot on a stable test
+// not an actual problem with the test subject
 func alarmBadLookupVar() (string, error) {
-
 	alarmData := make(map[string]string)
 	//set audience
 	alarmData["imprivata_event_audience"] = "DEVOPS"
-	// set severity to 2. It's a blindspot on a test  that shouldn't fail often
-	// so if it waits until the next day, we're ok
-	alarmData["imprivata_event_severity"] = "2"
-	// alarm detail
+
+	// alarm message
 	msg := fmt.Sprintf("Bad LOOKUPS value. Unable to parse JSON")
 	alarmData["imprivata_event_message"] = msg
 
-	emitStructuredEvent(alarmData, 1)
+	emitStructuredEvent(alarmData, 2)
 	return msg, errors.New(msg)
 }
 
 // called when the required var LOOKUPS is not set
-// logs the correct data
-// returns proper out and error
+// audience is DEVOPS becuase they maintain the lambda config (terraform)
+// Severity is 2 because it's a blindspot on a stable test
+// not an actual problem with the test subject
 func alarmUnsetLookupVar() (string, error) {
 
 	alarmData := make(map[string]string)
 	//set audience
 	alarmData["imprivata_event_audience"] = "DEVOPS"
-	// set severity to 2. It's a blindspot on a test  that shouldn't fail often
-	// so if it waits until the next day, we're ok
-	alarmData["imprivata_event_severity"] = "2"
+
 	// alarm detail
 	msg := fmt.Sprintf("Bad LOOKUPS value. The required varaible is unset")
 	alarmData["imprivata_event_message"] = msg
 
-	emitStructuredEvent(alarmData, 1)
+	emitStructuredEvent(alarmData, 2)
 	return msg, errors.New(msg)
 }
 
 // called for each host lookup failure
-// logs the correct data
-// returns proper out and error
+// audience is DEVOPS becuase they maintain the lambda config (terraform)
+// Severity is 2 because it's a blindspot on a stable test
+// not an actual problem with the test subject
+
+// NOTE: this is a generic lookup falure and it could be a real problem, but
+// it's been used  for a long time without any failures.  Other generic tests
+// (tcp connection test from pingdom, etc.) would be better suited than a
+// custom lambda
+
 func alarmHostLookupFailed(h string) (string, error) {
 
 	alarmData := make(map[string]string)
 	//set audience
 	alarmData["imprivata_event_audience"] = "DEVOPS"
-	// set severity to 2. It's a blindspot on a test  that shouldn't fail often
-	// so if it waits until the next day, we're ok
-	alarmData["imprivata_event_severity"] = "2"
+
 	// alarm detail
 	msg := fmt.Sprintf("Lookup failed for: %s", h)
 	alarmData["imprivata_event_message"] = msg
 
-	emitStructuredEvent(alarmData, 1)
+	emitStructuredEvent(alarmData, 2)
 	return msg, errors.New(msg)
 }
 
 // Called when the lookup works, but we don't get enough addresses back
-// This failure is the reason the monitor exists.
-// It breaks customers wiht FQDN based ACLs causing intermittent cloud
-// connecton failures
+// audience is DEVOPS becuase they maintain the DNs config under test The
+// severity is 1 because it breaks customers with FQDN based ACLs causing
+// intermittent cloud connecton failures
 func alarmTooFewAddresses(addr string, expected int, actual int) (string, error) {
 
 	alarmData := make(map[string]string)
 	//set audience
 	alarmData["imprivata_event_audience"] = "DEVOPS"
-	// set severity to 1. this is the reason the monitor was created
-	alarmData["imprivata_event_severity"] = "1"
+
 	// alarm detail
 	msg := fmt.Sprintf("Too few addresses for %s. expected %d. got %d", addr, 4, 1)
 	alarmData["imprivata_event_message"] = msg
