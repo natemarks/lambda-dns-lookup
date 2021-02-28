@@ -1,30 +1,55 @@
 # lambda-dns-lookup
 
-This lambda monitors the results of important DNS lookups to make sure that each returns the expected number of IP addresses.  Results are logged to cloudwatch using JSON so it's easy to parse the results into metrics , which are in turn used to trigger alarms.
+This lambda monitors the results of important DNS lookups to make sure that each returns the expected number of IP addresses.  I use this terraform module to deploy the lambda and the alarm pipeline:
+https://github.com/natemarks/tf-aws-lambda-monitor
 
-There is currently no way to alarm directly alarm on an event. the metrics stage is required
+Once deployed, the lmbda can be configured wiht these environment variables:
 
-## Monitor output
-All tests run against some target under test. There is a difference between test errors (anything that prevents the test from running correctly) and target errors (the test runs and the target is failing).  The first creates blind spot, the second indicates that the resource we care about is failing.
+DEBUG: [default: false] enable debug logging
+RANDOM_FAILURES: [default: false] randomly fire alarms for the difference failure modes
+LOOKUPS: json string that tells the lambda what FQDNs to check and how many addresses to expect for each
 
-This DNS test shouldn't fail often so having a blind spot is a severity 2. We don't need to wake anybody up for it.  It's ok to fix it the next business day
+## Understanding the alarms
 
+Severity 1: Too few addresses -  This is what we're looking for. It will cause intermittent failures for customers who use FQDN-based firewall ACLS. Somebody should wake up for this.
+
+Severity 2: lookup failed -  This is a blind spot for a test that shouldn't fail very often. It's ok to get to it next business day (NBD)
+
+Severity 2: Can't parse LOOKUPS json - This is a blind spot for a test that shouldn't fail very often. It's ok to get to it next business day (NBD)
+
+Severity 2: LOOKUPS env var is unset - This is a blind spot for a test that shouldn't fail very often. It's ok to get to it next business day (NBD)
 ## Deployment
 
-configure your aws client credentials with access to the account the bucket to store the 
-Configure deploy.tf and run terraform init/plan/apply
 
-## Configure
+### Build and push the lambda app to your bucket
+ - copy example/config.json to the root
+ - edit it accordingly
+ - configure your aws client 
+ - run the following to build, izp and push the app to your bucket
+
+```bash
+make compile
+```
+
+### Deploy the lambda -> alarm pipeline
+
+
+ - copy example/deploy.tf to the root
+ - edit it accordingly
+ - configure your aws client and make sure you have terraform installed
+
+NOTE: You need to get the OpsGenie endpoint from the opsgenie cloudwatch integration
+
+ - run the following to create the lambda, logs, metrics, filters,alarms, SNS
+
+```bash
+terraform int && terraform plan
+terraform apply
+```
+## Future
+
+### use KMS/Parameter store instead of env vars
 
 The function is configured by injecting environment variables using terraform.
 
 NOTE:  There is a [limit](https://aws.amazon.com/premiumsupport/knowledge-center/lambda-environment-variable-size/#:~:text=The%20default%20quota%20value%20of,use%20an%20external%20data%20store.) on the total size of al environment variable data. If the test request has to exceed that, the project should be extended to get the data from parameter store
-
-**DEBUG:** 'DEBUG' variable enables debug logging in the lambda.  It is enabled by setting the value to 'true' The check is case-insensitive. 
-
-**RANDOM_FAILURES:** 'RANDOM_FAILURES' variable causes the function to log random failures.  All of the failure modes should be covered eventually. This is important to creating the metrics correctly when the function is new OR if there are changes in AWS that force us to re-tune events and metrics.
-
-
-**LOOKUPS:** 'LOOKUPS' variable value is a json string that is unmarshalled into a list of lookupRequest structs. It allows us to configure the tests and expectations . If this is unset, the function will run a default test.  
-
-NOTE: If it gets bad JSON, it's probably not going t handle it well
