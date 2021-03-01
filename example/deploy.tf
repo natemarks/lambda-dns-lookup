@@ -1,5 +1,5 @@
 module "aws_lambda_monitor" {
-  source = "github.com/natemarks/tf-aws-lambda-monitor?ref=v0.0.11"
+  source = "github.com/natemarks/tf-aws-lambda-monitor?ref=v0.0.12"
 
   aws_account_id               = "0123456789012"
   aws_region                   = "us-east-1"
