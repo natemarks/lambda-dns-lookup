@@ -47,11 +47,12 @@ var flagtests = []struct {
 		errors.New("required LOOKUPS var is unset")},
 }
 
-func TestMain(t *testing.T) {
+func TestLambdaDnsLookup(t *testing.T) {
 	d := time.Now().Add(2500 * time.Millisecond)
-	os.Setenv("AWS_LAMBDA_FUNCTION_NAME", "cloudwatch-alert")
-	os.Setenv("DEBUG", "true")
-	ctx, _ := context.WithDeadline(context.Background(), d)
+	_ = os.Setenv("AWS_LAMBDA_FUNCTION_NAME", "cloudwatch-alert")
+	_ = os.Setenv("DEBUG", "true")
+	ctx, cancel := context.WithDeadline(context.Background(), d)
+	defer cancel()
 	ctx = lambdacontext.NewContext(ctx, &lambdacontext.LambdaContext{
 		AwsRequestID:       "495b12a8-xmpl-4eca-8168-160484189f99",
 		InvokedFunctionArn: "arn:aws:lambda:us-east-2:123456789012:function:cloudwatch-alert",
@@ -65,9 +66,9 @@ func TestMain(t *testing.T) {
 	for _, tt := range flagtests {
 		// set tt.lookupEnvVar to "" to test unset variable condition
 		if tt.lookupEnvVar == "" {
-			os.Unsetenv("LOOKUPS")
+			_ = os.Unsetenv("LOOKUPS")
 		} else {
-			os.Setenv("LOOKUPS", tt.lookupEnvVar)
+			_ = os.Setenv("LOOKUPS", tt.lookupEnvVar)
 		}
 		//var inputEvent CloudWatchEvent
 		result, err := handleRequest(ctx, event)
